@@ -1596,10 +1596,10 @@ spec:
       labels:
         app: kube-apiserver
         clusterID: "{{ .ClusterID }}"
-{{ if .RestartDate }}
+{{- if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
-{{ end }}
+{{- end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -1632,9 +1632,9 @@ spec:
                     values: ["kube-apiserver"]
               topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
-{{ if .MasterPriorityClass }}
+{{- if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
-{{ end }}
+{{- end }}
       initContainers:
       - image: {{ imageFor "cluster-config-operator" }}
 {{- if .ClusterConfigOperatorSecurityContext }}
@@ -1706,7 +1706,7 @@ spec:
 {{- if .KPInfo }}
         - "--encryption-provider-config=/etc/kubernetes/kms-config/config.yaml"
 {{- end }}
-{{- if .KonnectivityEnabled }}
+{{- if and .KonnectivityEnabled false }}
         - "--egress-selector-config-file=/etc/kubernetes/config/egress-config.yaml"
 {{- end }}
 {{- if .KubeAPIServerVerbosity }}
@@ -1781,7 +1781,7 @@ spec:
           name: logs
         - name: apiserver-cm
           mountPath: /etc/kubernetes/audit/
-{{ if .KPInfo }}
+{{- if .KPInfo }}
         - name: kms-config
           mountPath: /etc/kubernetes/kms-config/
         - name: kms-socket
@@ -1794,7 +1794,7 @@ spec:
 {{- end }}
         image: {{ .KMSImage }}
         imagePullPolicy: IfNotPresent
-{{ if .KMSServerResources }}
+{{- if .KMSServerResources }}
         resources:{{ range .KMSServerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
@@ -1802,7 +1802,7 @@ spec:
           limits: {{ if .CPU }}
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
-{{ end }}
+{{- end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
 {{- if .KMSLivenessProbe }}
@@ -1889,7 +1889,7 @@ spec:
             name: kubeconfig
             readOnly: true
 {{- end }}
-{{ if .PortierisEnabled }}
+{{- if .PortierisEnabled }}
       - name: portieris
 {{- if .PortierisSecurityContext }}
 {{- $securityContext := .PortierisSecurityContext }}
@@ -1908,7 +1908,7 @@ spec:
         - containerPort: 8000
           name: http
           protocol: TCP
-{{ if .PortierisContainerResources }}
+{{- if .PortierisContainerResources }}
         resources:{{ range .PortierisContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
@@ -1916,7 +1916,7 @@ spec:
           limits: {{ if .CPU }}
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
-{{ end }}
+{{- end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
 {{- if .PortierisLivenessProbe }}
@@ -1950,7 +1950,7 @@ spec:
         - mountPath: /etc/certs
           name: portieris-certs
           readOnly: true
-{{ end }}
+{{- end }}
       volumes:
       - name: bootstrap-manifests
         emptyDir: {}
@@ -1982,7 +1982,7 @@ spec:
       - name: apiserver-cm
         configMap:
           name: {{ if .APIServerAuditEnabled }}apiserver-audit-cm{{ else }}apiserver-default-audit-cm{{ end }}
-{{ if .KPInfo }}
+{{- if .KPInfo }}
       - name: kms-config
         configMap:
           name: kms-config
@@ -1993,13 +1993,13 @@ spec:
           secretName: kp-wdek-secret
           optional: true
           defaultMode: 0440
-{{ end }}
-{{ if .PortierisEnabled }}
+{{- end }}
+{{- if .PortierisEnabled }}
       - name: portieris-certs
         secret:
           defaultMode: 0640
           secretName: portieris-certs
-{{ end }}
+{{- end }}
 `)
 
 func kubeApiserverKubeApiserverDeploymentYamlBytes() ([]byte, error) {
